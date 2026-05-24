@@ -1,0 +1,9 @@
+node_modules/
+.env
+dist/
+.cursor/
+.next/
+*.key
+*.json
+!package.json
+!package-lock.json
