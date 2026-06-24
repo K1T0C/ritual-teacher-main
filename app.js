@@ -4,8 +4,8 @@ const RITUAL_CHAIN_ID = 1979;
 const RITUAL_CHAIN_HEX = '0x7BB';
 const RITUAL_RPC_URL = 'https://rpc.ritualfoundation.org';
 
-// Replace after deploy; also set AGENT_DEPLOYER_ADDRESS in .env for the backend decoder.
-let AGENT_DEPLOYER_ADDRESS = '0x0000000000000000000000000000000000000000';
+// ЖЁСТКО ЗАШИВАЕМ АДРЕС ТВОЕГО УСПЕШНОГО ДЕПЛОЯ
+let AGENT_DEPLOYER_ADDRESS = '0x7a7636ac94a68Ba0C7061c3ab2c8773F867d448D';
 const SERVICE_FEE_WEI = '0x71AFD498D0000'; // 0.002 RIT
 
 const AGENT_DEPLOYER_ABI = [
@@ -103,6 +103,7 @@ async function callAgentDeployer(action, text) {
     const account = accounts[0];
     const { messagesJson, temperature, actionEnum } = await buildMessagesPayload(action, text);
 
+    // Используем встроенный интерфейс ethers для кодирования транзакции
     const iface = new ethers.utils.Interface(AGENT_DEPLOYER_ABI);
     const data = iface.encodeFunctionData('processText', [
         actionEnum ?? ACTION_ENUM[action] ?? ACTION_ENUM.doctor,
