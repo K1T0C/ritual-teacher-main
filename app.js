@@ -68,12 +68,24 @@ async function ensureRitualNetwork(ethereum) {
     }
 }
 
-// Полностью автономная сборка структуры промптов прямо в браузере
+// Экранирование и безопасная сборка JSON-пейлоада для блокчейна Ritual
 async function buildMessagesPayload(action, text) {
-    const system = SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.doctor;
+    // Очищаем и экранируем пользовательский ввод от ломающих JSON символов
+    const cleanText = text
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, ' ')
+        .replace(/\r/g, ' ')
+        .trim();
+    
+    // Получаем и очищаем системный промпт
+    let system = SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.doctor;
+    system = system.replace(/\n/g, ' ').replace(/"/g, '\\"').trim();
+
+    // Собираем строгий JSON массив без лишних переносов и пробелов
     const messagesJson = JSON.stringify([
         { role: 'system', content: system },
-        { role: 'user', content: text },
+        { role: 'user', content: cleanText }
     ]);
 
     let temperature = 700;
@@ -118,7 +130,6 @@ async function callAgentDeployer(action, text) {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
     
-    // Сборка происходит мгновенно на фронтенде
     const { messagesJson, temperature, actionEnum } = await buildMessagesPayload(action, text);
 
     const iface = new ethers.utils.Interface(AGENT_DEPLOYER_ABI);
