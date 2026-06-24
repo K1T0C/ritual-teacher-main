@@ -245,8 +245,8 @@
                 <h5 class="text-success mb-3"><i class="fa-solid fa-code"></i> Teacher System Logs</h5>
                 <div id="logsOutput" class="p-3 rounded text-secondary">
                     > Ritual Teacher System: Online<br>
-                    > Access: Public (Free)<br>
-                    > Node: Connected
+                    > Network: Ritual Chain (1979)<br>
+                    > LLM: On-chain precompile 0x0802
                 </div>
             </div>
         </div>
@@ -278,60 +278,8 @@
         setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy', 2000);
     }
 
-    async function handleProcess(action) {
-        const inputId = (action === 'check') ? 'checkTextInput' : 'humanizeTextInput';
-        const userInput = document.getElementById(inputId).value; // <-- Вот твоя переменная текста
-
-        if (!userInput) {
-            addLog(`Error: Input field is empty`);
-            return;
-        }
-
-        // Автоматически определяем нужный под-экшен для Oracle Cloud
-        const oracleAction = (action === 'check') ? 'ai_detect' : 'humanize';
-
-        addLog(`Initiating ${action.toUpperCase()} protocol via Vercel Proxy...`);
-
-        try {
-            // Стучимся на относительный роут твоего Vercel-приложения
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    action: 'proxy_oracle',     // Команда для Vercel: переслать в Oracle Cloud
-                    message: userInput,         // ПЕРЕДАЕМ ПРАВИЛЬНУЮ ПЕРЕМЕННУЮ
-                    moduleName: oracleAction
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.error || data.reply?.startsWith('🚨') || data.reply?.startsWith('🛠️')) {
-                addLog(`Error: ${data.error || data.reply}`);
-                return;
-            }
-
-            // Получаем текст ответа (проверяем оба возможных поля reply или result)
-            const aiResult = data.reply || data.result || "No response text received";
-
-            if (action === 'humanize') {
-                const resPanel = document.getElementById('humanResultPanel');
-                const resText = document.getElementById('humanResultText');
-                resPanel.classList.remove('d-none');
-                resText.innerText = aiResult;
-            } else {
-                document.getElementById('checkResultLabel').innerText = `Report: ${aiResult}`;
-            }
-
-            addLog(`Execution Success. Method: Oracle Cloud Proxy`);
-
-        } catch (error) {
-            console.error(error);
-            addLog(`Error: ${error.message}`);
-        }
-    }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

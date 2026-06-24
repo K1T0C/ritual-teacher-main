@@ -1,11 +1,23 @@
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: { enabled: true, runs: 200 },
+      viaIR: true,
+    },
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
   networks: {
-    ritualTestnet: {
-      url: "https://rpc.ritualfoundation.org",
-      // Приватный ключ кошелька
-      accounts: ["d270ffa001aea4a04004509a5c7d553321301704e8947547677b5827a76f817d"],
+    ritual: {
+      url: process.env.RITUAL_RPC_URL ?? "https://rpc.ritualfoundation.org",
+      chainId: 1979,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
 };
