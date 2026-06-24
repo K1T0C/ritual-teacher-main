@@ -22,6 +22,15 @@ const ACTION_ENUM = {
     doctor: 5,
 };
 
+const SYSTEM_PROMPTS = {
+    check: `You are an objective Linguistic Analyst. Analyze if the text is AI-generated or Human-written. Provide: 1. AI PROBABILITY (%) 2. VERDICT 3. BRIEF ANALYSIS. Be fair. If it sounds like a normal person, mark it as Human.`,
+    humanize: `You are a regular person writing a quick message or a blog post. CRITICAL INSTRUCTIONS: 1. Use very simple, everyday language. 2. Break all long sentences into 2 or 3 short ones. 3. Use contractions (don't, it's, won't, can't) constantly. 4. Start sentences with 'And', 'But', or 'So'. 5. Avoid smart adjectives. Use 'good', 'big', 'fast', 'easy'. 6. No 'Furthermore', 'Moreover', 'In summary'.`,
+    'train-diagnostic': `You are a Ritual Security Mentor. Provide a READY-TO-USE BASH SCRIPT for Ritual node diagnostics. Focus on: EVM error extraction from logs and port checking. Format: Direct code block first, then brief explanation.`,
+    'train-prompting': `You are a Ritual RPC Expert. INSTRUCTION FOR USER: 1. Look at the code block below. 2. COPY the entire cURL command. 3. PASTE it into your terminal. 4. Replace "localhost" with your "Node IP" if you are remote. Now, provide the cURL template for Ritual state_meta and model_meta. Highlight code blocks using markdown. Language: English.`,
+    'train-action': `You are a Ritual Protocol Automator. Provide a PYTHON SNIPPET using web3.py for autonomous transaction signing in the Ritual network. Include gas estimation logic. Format: 100% working Python code block.`,
+    doctor: `You are the Ritual Node Doctor. Analyze node logs, identify root causes, and suggest concrete fixes. Use a technical cyberpunk tone. Be concise and actionable.`,
+};
+
 async function loadRitualConfig() {
     try {
         const res = await fetch('/api/ritual/config');
@@ -59,16 +68,23 @@ async function ensureRitualNetwork(ethereum) {
     }
 }
 
+// Полностью автономная сборка структуры промптов прямо в браузере
 async function buildMessagesPayload(action, text) {
-    const res = await fetch('/api/ritual/build-messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, text }),
-    });
-    if (!res.ok) {
-        throw new Error('Failed to build Ritual LLM messages');
-    }
-    return res.json();
+    const system = SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.doctor;
+    const messagesJson = JSON.stringify([
+        { role: 'system', content: system },
+        { role: 'user', content: text },
+    ]);
+
+    let temperature = 700;
+    if (action === 'check') temperature = 200;
+    if (action === 'humanize') temperature = 900;
+
+    return {
+        messagesJson,
+        temperature,
+        actionEnum: ACTION_ENUM[action] ?? ACTION_ENUM.doctor,
+    };
 }
 
 async function decodeRitualReceipt(txHash) {
@@ -94,19 +110,20 @@ async function callAgentDeployer(action, text) {
         !AGENT_DEPLOYER_ADDRESS ||
         AGENT_DEPLOYER_ADDRESS === '0x0000000000000000000000000000000000000000'
     ) {
-        throw new Error('Deploy AgentDeployer.sol and set AGENT_DEPLOYER_ADDRESS in .env');
+        throw new Error('Deploy AgentDeployer.sol and set AGENT_DEPLOYER_ADDRESS');
     }
 
     await ensureRitualNetwork(window.ethereum);
 
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
+    
+    // Сборка происходит мгновенно на фронтенде
     const { messagesJson, temperature, actionEnum } = await buildMessagesPayload(action, text);
 
-    // Используем встроенный интерфейс ethers для кодирования транзакции
     const iface = new ethers.utils.Interface(AGENT_DEPLOYER_ABI);
     const data = iface.encodeFunctionData('processText', [
-        actionEnum ?? ACTION_ENUM[action] ?? ACTION_ENUM.doctor,
+        actionEnum,
         messagesJson,
         temperature,
     ]);
