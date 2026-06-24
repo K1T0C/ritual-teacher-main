@@ -11,15 +11,14 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.static('.'));
 
 const RITUAL_CHAIN_ID = 1979;
-const RITUAL_RPC_URL = process.env.RITUAL_RPC_URL ?? 'https://rpc.ritualfoundation.org';
+const RITUAL_RPC_URL = 'https://rpc.ritualfoundation.org';
 const LLM_PRECOMPILE = '0x0000000000000000000000000000000000000802';
 const PRECOMPILE_CALLED_TOPIC = ethers.id('PrecompileCalled(address,bytes,bytes)');
 
-const AGENT_DEPLOYER_ADDRESS =
-    process.env.AGENT_DEPLOYER_ADDRESS ?? '0x0000000000000000000000000000000000000000';
-const PAYOUT_WALLET =
-    process.env.PAYOUT_WALLET ?? '0xYOUR_WALLET_HERE';
-const SERVICE_FEE_RIT = process.env.SERVICE_FEE_RIT ?? '0.002';
+// Данные твоего успешного деплоя в сети Ritual
+const AGENT_DEPLOYER_ADDRESS = '0x7a7636ac94a68Ba0C7061c3ab2c8773F867d448D';
+const PAYOUT_WALLET = '0x01594Eaae8104d654B1D99f1Bec43afaaab45850';
+const SERVICE_FEE_RIT = '0.002';
 
 const provider = new ethers.JsonRpcProvider(RITUAL_RPC_URL, RITUAL_CHAIN_ID);
 
@@ -247,8 +246,7 @@ app.post('/api/process-text', async (req, res) => {
     }
 
     res.status(400).json({
-        result:
-            'Direct off-chain LLM is disabled. Pay via AgentDeployer on Ritual Chain (1979), then POST { txHash } to /api/ritual/decode.',
+        result: `Deploy AgentDeployer.sol and set AGENT_DEPLOYER_ADDRESS in .env. Current fixed contract: ${AGENT_DEPLOYER_ADDRESS}`,
         hint: { chainId: RITUAL_CHAIN_ID, agentDeployer: AGENT_DEPLOYER_ADDRESS },
     });
 });
