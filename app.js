@@ -1,11 +1,11 @@
-// Ritual Teacher — browser client for Ritual Chain (1979) + AgentDeployer + LLM precompile 0x0802
+// Ritual Teacher — browser client for Ritual Chain (1979) + AgentDeployer + Hybrid Backend Inference
 
 const RITUAL_CHAIN_ID = 1979;
 const RITUAL_CHAIN_HEX = '0x7BB';
 const RITUAL_RPC_URL = 'https://rpc.ritualfoundation.org';
 
 // ЖЁСТКО ЗАШИВАЕМ АДРЕС ТВОЕГО УСПЕШНОГО ДЕПЛОЯ
-let AGENT_DEPLOYER_ADDRESS = '0x7a7636ac94a68Ba0C7061c3ab2c8773F867d448D';
+let AGENT_DEPLOYER_ADDRESS = '0x0b37Aa7bAf9Cc51dB0802f9C7f3295f95AFbA552';
 const SERVICE_FEE_WEI = '0x71AFD498D0000'; // 0.002 RIT
 
 const AGENT_DEPLOYER_ABI = [
@@ -70,7 +70,6 @@ async function ensureRitualNetwork(ethereum) {
 
 // Экранирование и безопасная сборка JSON-пейлоада для блокчейна Ritual
 async function buildMessagesPayload(action, text) {
-    // Очищаем и экранируем пользовательский ввод от ломающих JSON символов
     const cleanText = text
         .replace(/\\/g, '\\\\')
         .replace(/"/g, '\\"')
@@ -78,11 +77,9 @@ async function buildMessagesPayload(action, text) {
         .replace(/\r/g, ' ')
         .trim();
     
-    // Получаем и очищаем системный промпт
     let system = SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.doctor;
     system = system.replace(/\n/g, ' ').replace(/"/g, '\\"').trim();
 
-    // Собираем строгий JSON массив без лишних переносов и пробелов
     const messagesJson = JSON.stringify([
         { role: 'system', content: system },
         { role: 'user', content: cleanText }
@@ -99,12 +96,13 @@ async function buildMessagesPayload(action, text) {
     };
 }
 
-async function decodeRitualReceipt(txHash) {
+// Отправляет txHash вместе с контекстом на бэкенд для децентрализованной валидации и резервного инференса
+async function decodeRitualReceipt(txHash, action, text) {
     for (let attempt = 0; attempt < 24; attempt++) {
         const res = await fetch('/api/ritual/decode', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ txHash }),
+            body: JSON.stringify({ txHash, action, text }),
         });
         const data = await res.json();
         if (res.ok && data.result) return data.result;
@@ -150,7 +148,7 @@ async function callAgentDeployer(action, text) {
         }],
     });
 
-    return decodeRitualReceipt(txHash);
+    return decodeRitualReceipt(txHash, action, text);
 }
 
 async function handleProcess(action) {
