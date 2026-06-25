@@ -14,7 +14,7 @@ const RITUAL_CHAIN_ID = 1979;
 const RITUAL_RPC_URL = 'https://rpc.ritualfoundation.org';
 
 // Адрес твоего нового контракта
-const AGENT_DEPLOYER_ADDRESS = '0x0b37Aa7bAf9Cc51dB0802f9C7f3295f95AFbA552';
+const AGENT_DEPLOYER_ADDRESS = '0x2061246E2241e5c2F3Fb51a10035A38A507888d8';
 const PAYOUT_WALLET = '0x01594Eaae8104d654B1D99f1Bec43afaaab45850';
 const SERVICE_FEE_RIT = '0.002';
 

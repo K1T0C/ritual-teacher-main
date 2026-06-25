@@ -5,7 +5,7 @@ const RITUAL_CHAIN_HEX = '0x7BB';
 const RITUAL_RPC_URL = 'https://rpc.ritualfoundation.org';
 
 // ЖЁСТКО ЗАШИВАЕМ АДРЕС ТВОЕГО УСПЕШНОГО ДЕПЛОЯ
-let AGENT_DEPLOYER_ADDRESS = '0x0b37Aa7bAf9Cc51dB0802f9C7f3295f95AFbA552';
+let AGENT_DEPLOYER_ADDRESS = '0x2061246E2241e5c2F3Fb51a10035A38A507888d8';
 const SERVICE_FEE_WEI = '0x71AFD498D0000'; // 0.002 RIT
 
 const AGENT_DEPLOYER_ABI = [
